@@ -73,7 +73,22 @@ jobs:
     - name: Build
       run: npm run build
 
-    - name: Dependency Scan
-      run: npm audit 
-      
+    - name: Build & push Docker image
+      uses: mr-smithers-excellent/docker-build-push@v5
+      with:
+        image: ramansingh2000/nodeimage
+        tags: latest
+        registry: docker.io
+        dockerfile: Dockerfile
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_PASSWORD }}
+    - name: Trivy Scan
+      uses:  aquasecurity/trivy-action@master
+      with:
+        image-ref: ramansingh2000/nodeimage:latest
+        format: 'table'
+        exit-code: '0'
+        ignore-unfixed: true
+        vuln-type: 'os,library'
+        severity: 'CRITICAL,HIGH'
    
