@@ -47,7 +47,7 @@ jobs:
     - name: Build
       run: npm run build
 
-     - name: Dependency Scan
-       run: npm audit 
+    - name: Dependency Scan
+      run: npm audit 
       
    
