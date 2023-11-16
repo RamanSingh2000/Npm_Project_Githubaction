@@ -76,7 +76,7 @@ jobs:
     - name: Build & push Docker image
       uses: mr-smithers-excellent/docker-build-push@v5
       with:
-        image: ramansingh2000/nodeimage
+        image: ramansingh2000/nodeimage1
         tags: latest
         registry: docker.io
         dockerfile: Dockerfile
@@ -85,7 +85,7 @@ jobs:
     - name: Trivy Scan
       uses:  aquasecurity/trivy-action@master
       with:
-        image-ref: ramansingh2000/nodeimage:latest
+        image-ref: ramansingh2000/nodeimage1:latest
         format: 'table'
         exit-code: '0'
         ignore-unfixed: true
