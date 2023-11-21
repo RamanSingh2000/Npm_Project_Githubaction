@@ -122,5 +122,5 @@ jobs:
 
     - name: Upload to Nexus Repository
       run: |
-        curl -v -u ${{ admin }}:${{admin }} --upload-file ./build/* ${{ http://3.109.121.192:8082/ }}/repository/React-repo/
+        curl -v -u ${{secrets.NEXUS_USERNAME }}:${{secrets.NEXUS_PASSWORD }} --upload-file ./build/* ${{ http://3.109.121.192:8082/ }}/repository/React-repo/
    
