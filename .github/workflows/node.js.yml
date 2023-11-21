@@ -22,7 +22,7 @@ jobs:
           node-version: 16
       - name: Install dependencies
         run: yarn install
-     
+    
       - name: SonarQube Scan
         uses: sonarsource/sonarqube-scan-action@master
         env:
@@ -83,7 +83,14 @@ jobs:
       # build the react app
     - name: Build
       run: npm run build
-
+    
+    - name: Archive Artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: react-artifact
+        path: build/ 
+        
+        
     - name: Build & push Docker image
       uses: mr-smithers-excellent/docker-build-push@v5
       with:
@@ -102,4 +109,18 @@ jobs:
         ignore-unfixed: true
         vuln-type: 'os,library'
         severity: 'CRITICAL,HIGH'
+
+  upload-to-nexus:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+    - name: Download Artifact
+      uses: actions/download-artifact@v2
+      with:
+        name: react-artifact
+        path: build/
+
+    - name: Upload to Nexus Repository
+      run: |
+        curl -v -u ${{ admin }}:${{admin }} --upload-file ./build/* ${{ http://3.109.121.192:8082/ }}/repository/React-repo/
    
