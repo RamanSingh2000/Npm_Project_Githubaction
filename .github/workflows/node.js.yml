@@ -105,7 +105,7 @@ jobs:
         repository: npm_githubactions
         coordinates: groupId=QA artifactId=npm version=${{ github.run_number }}
         assets: extension=zip
-        filename:  react-artifact
+        filename: build/react-artifact
         
     - name: Build & push Docker image
       uses: mr-smithers-excellent/docker-build-push@v5
