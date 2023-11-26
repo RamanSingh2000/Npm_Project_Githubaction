@@ -107,7 +107,7 @@ jobs:
         repository: npm_githubactions
         coordinates: groupId=QA artifactId=npm version=${{ github.run_number }}
         assets: extension=tar.gz
-        filename: npm
+        filename: npm.tar.gz
         
     - name: Build & push Docker image
       uses: mr-smithers-excellent/docker-build-push@v5
