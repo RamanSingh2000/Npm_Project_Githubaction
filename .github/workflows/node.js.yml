@@ -94,7 +94,11 @@ jobs:
       uses: actions/download-artifact@v2
       with:
         name: react-artifact
-        path: build/
+        path: ${{ github.workspace }}
+
+    - name: Display Contents
+      run: |
+        ls -l ${{ github.workspace }}
     - name: Nexus Repo Publish
       uses: sonatype-nexus-community/nexus-repo-github-action@master
       with:
