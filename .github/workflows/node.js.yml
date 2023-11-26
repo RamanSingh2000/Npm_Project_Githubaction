@@ -94,7 +94,7 @@ jobs:
       uses: actions/download-artifact@v2
       with:
         name: react-artifact
-        path: ${{ github.workspace }}
+        path: ${{github.workspace}}
     - name: Nexus Repo Publish
       uses: sonatype-nexus-community/nexus-repo-github-action@master
       with:
@@ -105,7 +105,7 @@ jobs:
         repository: npm_githubactions
         coordinates: groupId=QA artifactId=npm version=${{ github.run_number }}
         assets: extension=zip
-        filename: ${{ github.workspace }}/react-artifact
+        filename: /github/workspace/react-artifact
         
     - name: Build & push Docker image
       uses: mr-smithers-excellent/docker-build-push@v5
