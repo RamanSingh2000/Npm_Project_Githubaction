@@ -83,6 +83,9 @@ jobs:
       # build the react app
     - name: Build
       run: npm run build
+
+    - name: Create Tar file
+      run: tar -czvf npm.tar.gz -C build .
    
     - name: Archive Artifact
       uses: actions/upload-artifact@v2
@@ -90,11 +93,7 @@ jobs:
         name: react-artifact
         path: build/ 
 
-    - name: Download Artifact
-      uses: actions/download-artifact@v2
-      with:
-        name: react-artifact
-        path: ${{ github.workspace }}/downloaded-artifact
+   
 
     - name: Display Contents of Downloaded Artifact Directory
       run: ls -l ${{ github.workspace }}/downloaded-artifact/
@@ -107,8 +106,8 @@ jobs:
         format: raw
         repository: npm_githubactions
         coordinates: groupId=QA artifactId=npm version=${{ github.run_number }}
-        assets: extension=zip
-        filename: ${{ github.workspace }}/downloaded-artifact/react-artifact/*.zip
+        assets: extension=tar.gz
+        filename: npm
         
     - name: Build & push Docker image
       uses: mr-smithers-excellent/docker-build-push@v5
