@@ -96,7 +96,7 @@ jobs:
         username: admin
         password: admin
         format: raw
-        repository: maven-devops
+        repository: npm_githubactions
         coordinates: groupId=QA artifactId=npm version=${{ github.run_number }}
         assets: extension=zip
         filename:  react-artifact
