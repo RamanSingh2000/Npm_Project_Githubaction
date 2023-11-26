@@ -103,8 +103,8 @@ jobs:
         serverUrl: http://13.127.85.183:8082
         username: admin
         password: admin
-        # format: raw
-        repository: npm_githubactions
+        format: raw
+        repository: github-npm
         coordinates: groupId=QA artifactId=react version=${{ github.run_number }}
         assets: extension=tar.gz
         filename: npm.tar.gz
