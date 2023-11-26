@@ -85,7 +85,7 @@ jobs:
       run: npm run build
 
     - name: Create Tar file
-      run: tar -czvf npm.tar.gz -C build .
+      run: tar -czvf npm-${{ github.run_number }}.tar.gz -C build .
    
     - name: Archive Artifact
       uses: actions/upload-artifact@v2
