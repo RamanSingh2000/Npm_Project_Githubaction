@@ -83,14 +83,23 @@ jobs:
       # build the react app
     - name: Build
       run: npm run build
-    - name: Set version
-      run: echo "VERSION=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
+   
     - name: Archive Artifact
       uses: actions/upload-artifact@v2
       with:
-        name: react-artifact-$VERSION
+        name: react-artifact
         path: build/ 
-        
+    - name: Nexus Repo Publish
+      uses: sonatype-nexus-community/nexus-repo-github-action@master
+      with:
+        serverUrl: http://13.127.85.183:8082
+        username: admin
+        password: admin
+        format: raw
+        repository: maven-devops
+        coordinates: groupId=QA artifactId=npm version=${{ github.run_number }}
+        assets: extension=zip
+        filename:  react-artifact
         
     - name: Build & push Docker image
       uses: mr-smithers-excellent/docker-build-push@v5
