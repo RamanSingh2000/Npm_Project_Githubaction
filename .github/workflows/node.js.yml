@@ -107,7 +107,7 @@ jobs:
         path: build/ 
     - name: Upload to Nexus
       run: |
-          curl -v -u admin:admin --upload-file npm-${{ github.run_number }}.tar.gz http://13.232.252.139:8082/repository/github-npm/
+          curl -v -u admin:admin --upload-file npm-${{ github.run_number }}.tar.gz http://65.0.87.230:8082/repository/github-npm/
         
     
         
