@@ -12,26 +12,26 @@ on:
  
 
 jobs:
-  sonarqube:
-    name: SonarQube Scan
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout source code
-        uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
-      - name: Setup Node.js
-        uses: actions/setup-node@v1
-        with:
-          node-version: 16
-      - name: Install dependencies
-        run: yarn install
+  # sonarqube:
+  #   name: SonarQube Scan
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Checkout source code
+  #       uses: actions/checkout@v2
+  #       with:
+  #         fetch-depth: 0
+  #     - name: Setup Node.js
+  #       uses: actions/setup-node@v1
+  #       with:
+  #         node-version: 16
+  #     - name: Install dependencies
+  #       run: yarn install
     
-      - name: SonarQube Scan
-        uses: sonarsource/sonarqube-scan-action@master
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+  #     - name: SonarQube Scan
+  #       uses: sonarsource/sonarqube-scan-action@master
+  #       env:
+  #         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+  #         SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
 
   build:
 
@@ -50,8 +50,17 @@ jobs:
       with:
         java-version: '1.8'
         distribution: 'adopt'
-        
+    - name: Choose Deployment Type
+      id: choose_deployment
+      run: |
+          echo "::set-output name=deployment_type::$(echo -e 'container\nnon-container' | grep -m 1 -i "$(echo "$INPUT_DEPLOYMENT_TYPE" | tr -d '[:space:]')")"
+      env:
+          INPUT_DEPLOYMENT_TYPE: ${{ github.event.inputs.deployment_type }}
 
+    - name: Show Deployment Type
+      run: |
+          echo "Deployment Type: ${{ steps.choose_deployment.outputs.deployment_type }}"   
+  
         # cache the dependencies to speed up the build
     - name: Cache dependencies
       uses: actions/cache@v2
@@ -140,7 +149,7 @@ jobs:
           # Container deployment steps
           sudo docker pull ramansingh2000/nodeimage1
           sudo docker rm -f npm-example-container
-          sudo docker run -d -p 8087:8080 --name npm-example-container ramansingh2000/nodeimage1:latest
+          sudo docker run -d -p 3005:3000 --name npm-example-container ramansingh2000/nodeimage1:latest
          else
          
           sudo yum install wget -y
@@ -148,16 +157,11 @@ jobs:
           # echo "NEXUS_PASSWORD=your_password" >> ~/.bashrc
           # source ~/.bashrc
 
-          # Example: Download a WAR file from Nexus
-          wget --user=admin --password=admin -O app.war "http://65.1.111.145:8082/repository/maven-devops/QA/devops-integration/${{ github.run_number }}/devops-integration-${{ github.run_number }}.war"
+          # Example: Download a tar file from Nexus
+          wget --user=admin --password=admin -O app.war "http://65.0.87.230:8082/repository/github-npm/npm-${{ github.run_number }}.tar.gz"
+          tar -xzvf npm-${{  github.run_number }}.tar.gz
+           
 
-          # Download Tomcat Docker image
-          sudo docker pull tomcat:8
-
-          # Run Tomcat Docker container on port 8085
-          sudo docker run -d -p 8085:8080 --name my-tomcat tomcat:8
-
-          # Deploy the WAR file to Tomcat
-          sudo docker cp app.war my-tomcat:/usr/local/tomcat/webapps/
+        
          fi
 
