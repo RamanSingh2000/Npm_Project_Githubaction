@@ -8,34 +8,39 @@ on:
       deployment_type:
         description: 'Choose deployment type'
         required: true
+        options:
+        - container
+        - non-container
         default: 'container'
  
 
 jobs:
-  # sonarqube:
-  #   name: SonarQube Scan
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - name: Checkout source code
-  #       uses: actions/checkout@v2
-  #       with:
-  #         fetch-depth: 0
-  #     - name: Setup Node.js
-  #       uses: actions/setup-node@v1
-  #       with:
-  #         node-version: 16
-  #     - name: Install dependencies
-  #       run: yarn install
+  sonarqube:
+    name: SonarQube Scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: Setup Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: 16
+      - name: Install dependencies
+        run: yarn install
     
-  #     - name: SonarQube Scan
-  #       uses: sonarsource/sonarqube-scan-action@master
-  #       env:
-  #         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-  #         SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+      - name: SonarQube Scan
+        uses: sonarsource/sonarqube-scan-action@master
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
 
   build:
 
     runs-on: ubuntu-latest
+    outputs:
+       deployment_type: ${{ steps.choose_deployment.outputs.DEPLOYMENT_TYPE }}
     steps:
     # checkout the repository content to github runner
     - name: Checkout
@@ -50,13 +55,18 @@ jobs:
       with:
         java-version: '1.8'
         distribution: 'adopt'
+  
+
     - name: Choose Deployment Type
       id: choose_deployment
       run: |
-          echo "::set-output name=deployment_type::$(echo -e 'container\nnon-container' | grep -m 1 -i "$(echo "$INPUT_DEPLOYMENT_TYPE" | tr -d '[:space:]')")"
+       deployment_type=$(echo -e 'container\nnon-container' | grep -m 1 -i "$(echo "$INPUT_DEPLOYMENT_TYPE" | tr -d '[:space:]')")
+       echo "INPUT_DEPLOYMENT_TYPE: $INPUT_DEPLOYMENT_TYPE"
+       echo "Deployment Type: $deployment_type"
+       echo "::set-output name=DEPLOYMENT_TYPE::$deployment_type"
       env:
-          INPUT_DEPLOYMENT_TYPE: ${{ github.event.inputs.deployment_type }}
-
+       INPUT_DEPLOYMENT_TYPE: ${{ github.event.inputs.deployment_type }}
+    
     - name: Show Deployment Type
       run: |
           echo "Deployment Type: ${{ steps.choose_deployment.outputs.deployment_type }}"   
@@ -74,24 +84,24 @@ jobs:
     - name: Install dependencies
       run: npm i
 
-    # - name: Depcheck
-    #   uses: dependency-check/Dependency-Check_Action@main
-    #   env:
-    #     JAVA_HOME: /opt/jdk
-    #   id: Depcheck
-    #   with:
-    #     project: 'Npm_Project_Githubaction'
-    #     path: '.'
-    #     format: 'HTML'
-    #     out: 'reports' # this is the default, no need to specify unless you wish to override it
-    #     # args: >
-    #     #   --failOnCVSS 10
-    #     #   --enableRetired
-    # - name: Upload Test results
-    #   uses: actions/upload-artifact@master
-    #   with:
-    #      name: Depcheck report
-    #      path: ${{github.workspace}}/reports
+    - name: Depcheck
+      uses: dependency-check/Dependency-Check_Action@main
+      env:
+        JAVA_HOME: /opt/jdk
+      id: Depcheck
+      with:
+        project: 'Npm_Project_Githubaction'
+        path: '.'
+        format: 'HTML'
+        out: 'reports' # this is the default, no need to specify unless you wish to override it
+        # args: >
+        #   --failOnCVSS 10
+        #   --enableRetired
+    - name: Upload Test results
+      uses: actions/upload-artifact@master
+      with:
+         name: Depcheck report
+         path: ${{github.workspace}}/reports
 
       # build the react app
     - name: Build
@@ -134,34 +144,30 @@ jobs:
     needs: build
     runs-on: self-hosted
     steps: 
-      - name: Debug Outputs Structure
+      - name: Retrieve Deployment Type from global env
         run: |
-          echo "Build Outputs: ${{ toJson(needs.build.outputs) }}
-      - name: Retrieve Deployment Type from previous job
-        run: |
-          deployment_type=${{  needs.build.outputs.deployment_type }}
-          echo "Deployment Type in Deploy Job: $deployment_type"
-          echo "Deployment Type from inputs: ${{ github.event.inputs.deployment_type }}"
+         deployment_type=${{ needs.build.outputs.DEPLOYMENT_TYPE }}
+         echo "Deployment Type in Deploy Job: $type"
 
       - name: Deployment based on Type
         run: |
-         if [[ "$deployment_type" == "container" ]]; then
+         if [[ "$deployment_type,," == "container" ]]; then
           # Container deployment steps
+          echo "Deploying as a container"
           sudo docker pull ramansingh2000/nodeimage1
           sudo docker rm -f npm-example-container
           sudo docker run -d -p 3005:3000 --name npm-example-container ramansingh2000/nodeimage1:latest
-         else
+        
+         elif [ "$deployment_type,," == "non-container" ]; then
+          echo "Deploying as a non-container"
+          sudo apt-get install wget -y
          
-          sudo yum install wget -y
-          # echo "NEXUS_USERNAME=your_username" >> ~/.bashrc
-          # echo "NEXUS_PASSWORD=your_password" >> ~/.bashrc
-          # source ~/.bashrc
-
           # Example: Download a tar file from Nexus
           wget --user=admin --password=admin -O app.war "http://13.127.241.237:8082/repository/github-npm/npm-${{ github.run_number }}.tar.gz"
           tar -xzvf npm-${{  github.run_number }}.tar.gz
            
-
+         else
+          echo "Select correct deployment type"
         
          fi
 
